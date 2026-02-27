@@ -29,16 +29,16 @@ describe("CliTransport", () => {
       result: { payloads: [{ text: "hello from cli" }] },
     };
 
-    vi.mocked(execFile).mockImplementation((bin, args, opts, cb) => {
-      (cb as any)(null, JSON.stringify(mockOutput), "");
-      return {} as any;
+    vi.mocked(execFile).mockImplementation((_bin, _args, _opts, cb) => {
+      (cb as Parameters<typeof execFile>[3])(null, JSON.stringify(mockOutput), "");
+      return {} as ReturnType<typeof execFile>;
     });
 
-    const result: any = await transport.request("chat.send", {
+    const result = await transport.request("chat.send", {
       message: "hi",
       sessionKey: "sess1",
-    });
-    expect(result.message.content[0].text).toBe("hello from cli");
+    }) as { message: { content: Array<{ type: string; text: string; }>; }; };
+    expect(result.message.content[0]?.text).toBe("hello from cli");
     expect(execFile).toHaveBeenCalledWith(
       "custom-bin",
       expect.arrayContaining(["--message", "hi", "--session-id", "sess1"]),
@@ -49,9 +49,9 @@ describe("CliTransport", () => {
 
   it("should handle CLI error response", async () => {
     const transport = new CliTransport();
-    vi.mocked(execFile).mockImplementation((bin, args, opts, cb) => {
-      (cb as any)(null, JSON.stringify({ error: "CLI Crashed" }), "");
-      return {} as any;
+    vi.mocked(execFile).mockImplementation((_bin, _args, _opts, cb) => {
+      (cb as Parameters<typeof execFile>[3])(null, JSON.stringify({ error: "CLI Crashed" }), "");
+      return {} as ReturnType<typeof execFile>;
     });
 
     await expect(transport.request("chat.send", { message: "hi" })).rejects.toThrow(
@@ -61,9 +61,9 @@ describe("CliTransport", () => {
 
   it("should handle execFile error", async () => {
     const transport = new CliTransport();
-    vi.mocked(execFile).mockImplementation((bin, args, opts, cb) => {
-      (cb as any)(new Error("Spawn error"), "", "some stderr");
-      return {} as any;
+    vi.mocked(execFile).mockImplementation((_bin, _args, _opts, cb) => {
+      (cb as Parameters<typeof execFile>[3])(new Error("Spawn error"), "", "some stderr");
+      return {} as ReturnType<typeof execFile>;
     });
 
     await expect(transport.request("chat.send", { message: "hi" })).rejects.toThrow("Spawn error");
@@ -71,12 +71,14 @@ describe("CliTransport", () => {
 
   it("should handle empty payloads response", async () => {
     const transport = new CliTransport();
-    vi.mocked(execFile).mockImplementation((bin, args, opts, cb) => {
-      (cb as any)(null, JSON.stringify({ result: { payloads: [] } }), "");
-      return {} as any;
+    vi.mocked(execFile).mockImplementation((_bin, _args, _opts, cb) => {
+      (cb as Parameters<typeof execFile>[3])(null, JSON.stringify({ result: { payloads: [] } }), "");
+      return {} as ReturnType<typeof execFile>;
     });
 
-    const result: any = await transport.request("chat.send", { message: "hi" });
-    expect(result.message.content[0].text).toBe("(no response)");
+    const result = await transport.request("chat.send", { message: "hi" }) as {
+      message: { content: Array<{ type: string; text: string; }>; };
+    };
+    expect(result.message.content[0]?.text).toBe("(no response)");
   });
 });

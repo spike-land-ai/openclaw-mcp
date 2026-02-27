@@ -6,6 +6,7 @@ export type {
   McpBridge,
   McpBridgeOptions,
   McpCallResult,
+  McpContentItem,
   McpToolDef,
   ToolLike,
 } from "./types.js";
