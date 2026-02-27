@@ -27,7 +27,7 @@ type ChatResult = {
 };
 
 type ToolCallResult = {
-  content?: Array<{ type: string; text?: string; mimeType?: string; }>;
+  content?: Array<{ type: string; text?: string; mimeType?: string; url?: string; data?: string; }>;
 };
 
 export function createMcpBridge(opts: McpBridgeOptions): McpBridge {
@@ -78,8 +78,8 @@ export function createMcpBridge(opts: McpBridgeOptions): McpBridge {
         "tools.list",
         {},
       );
-    } catch {
-      log("tools.list not available, using chat-only mode");
+    } catch (err) {
+      log(`tools.list not available (${String(err)}), using chat-only mode`);
       return;
     }
 
@@ -145,6 +145,12 @@ export function createMcpBridge(opts: McpBridgeOptions): McpBridge {
             return { type: "text" as const, text: c.text ?? "" };
           }
           if (c.type === "image") {
+            if (c.data) {
+              return { type: "image" as const, source: { type: "base64", data: c.data, mediaType: c.mimeType } };
+            }
+            if (c.url) {
+              return { type: "image" as const, source: { type: "url", url: c.url }, mediaType: c.mimeType };
+            }
             return { type: "text" as const, text: `[image: ${c.mimeType}]` };
           }
           return { type: "text" as const, text: JSON.stringify(c) };
