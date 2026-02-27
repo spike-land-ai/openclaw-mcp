@@ -26,8 +26,12 @@ export type McpToolDef = {
   inputSchema: Record<string, unknown>;
 };
 
+export type McpContentItem =
+  | { type: "text"; text: string; }
+  | { type: "image"; source: { type: "base64"; data: string; mediaType: string; } | { type: "url"; url: string; }; };
+
 export type McpCallResult = {
-  content: Array<{ type: "text"; text: string; }>;
+  content: McpContentItem[];
   isError?: boolean;
 };
 
