@@ -8,6 +8,7 @@ import type {
   McpBridge,
   McpBridgeOptions,
   McpCallResult,
+  McpContentItem,
   McpToolDef,
 } from "./types.js";
 
@@ -27,7 +28,7 @@ type ChatResult = {
 };
 
 type ToolCallResult = {
-  content?: Array<{ type: string; text?: string; mimeType?: string; }>;
+  content?: Array<{ type: string; text?: string; mimeType?: string; url?: string; data?: string; }>;
 };
 
 export function createMcpBridge(opts: McpBridgeOptions): McpBridge {
@@ -78,8 +79,8 @@ export function createMcpBridge(opts: McpBridgeOptions): McpBridge {
         "tools.list",
         {},
       );
-    } catch {
-      log("tools.list not available, using chat-only mode");
+    } catch (err) {
+      log(`tools.list not available (${String(err)}), using chat-only mode`);
       return;
     }
 
@@ -140,14 +141,26 @@ export function createMcpBridge(opts: McpBridgeOptions): McpBridge {
       });
       const content = result.content ?? [];
       return {
-        content: content.map(c => {
+        content: content.map((c): McpContentItem => {
           if (c.type === "text") {
-            return { type: "text" as const, text: c.text ?? "" };
+            return { type: "text", text: c.text ?? "" };
           }
           if (c.type === "image") {
-            return { type: "text" as const, text: `[image: ${c.mimeType}]` };
+            if (c.data) {
+              return {
+                type: "image",
+                source: { type: "base64", data: c.data, mediaType: c.mimeType ?? "application/octet-stream" },
+              };
+            }
+            if (c.url) {
+              return {
+                type: "image",
+                source: { type: "url", url: c.url },
+              };
+            }
+            return { type: "text", text: `[image: ${c.mimeType ?? "unknown"}]` };
           }
-          return { type: "text" as const, text: JSON.stringify(c) };
+          return { type: "text", text: JSON.stringify(c) };
         }),
       };
     } catch (err) {
