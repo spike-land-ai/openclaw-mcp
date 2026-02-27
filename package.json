@@ -24,6 +24,7 @@
     "registry": "https://npm.pkg.github.com"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.29.4",
     "@modelcontextprotocol/sdk": "^1.27.1",
     "@types/node": "^22.0.0",
     "typescript": "^5.7.0",
