@@ -8,6 +8,7 @@ import type {
   McpBridge,
   McpBridgeOptions,
   McpCallResult,
+  McpContentItem,
   McpToolDef,
 } from "./types.js";
 
@@ -140,20 +141,26 @@ export function createMcpBridge(opts: McpBridgeOptions): McpBridge {
       });
       const content = result.content ?? [];
       return {
-        content: content.map(c => {
+        content: content.map((c): McpContentItem => {
           if (c.type === "text") {
-            return { type: "text" as const, text: c.text ?? "" };
+            return { type: "text", text: c.text ?? "" };
           }
           if (c.type === "image") {
             if (c.data) {
-              return { type: "image" as const, source: { type: "base64", data: c.data, mediaType: c.mimeType } };
+              return {
+                type: "image",
+                source: { type: "base64", data: c.data, mediaType: c.mimeType ?? "application/octet-stream" },
+              };
             }
             if (c.url) {
-              return { type: "image" as const, source: { type: "url", url: c.url }, mediaType: c.mimeType };
+              return {
+                type: "image",
+                source: { type: "url", url: c.url },
+              };
             }
-            return { type: "text" as const, text: `[image: ${c.mimeType}]` };
+            return { type: "text", text: `[image: ${c.mimeType ?? "unknown"}]` };
           }
-          return { type: "text" as const, text: JSON.stringify(c) };
+          return { type: "text", text: JSON.stringify(c) };
         }),
       };
     } catch (err) {
