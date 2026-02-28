@@ -35,7 +35,7 @@
     "url": "git+https://github.com/spike-land-ai/openclaw-mcp.git"
   },
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
+    "access": "public"
   },
   "devDependencies": {
     "@changesets/cli": "^2.29.4",
