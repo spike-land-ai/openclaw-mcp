@@ -4,33 +4,28 @@ import { execFile } from "node:child_process";
 import { createMcpBridge } from "./bridge.js";
 import type { GatewayTransport } from "./types.js";
 
-type CliPayload = { text?: string; };
+type CliPayload = { text?: string };
 
 type CliResponse = {
-  result?: { payloads?: CliPayload[]; };
+  result?: { payloads?: CliPayload[] };
   error?: string;
 };
 
 function runCli(
   bin: string,
   args: string[],
-  opts: { timeout?: number; maxBuffer?: number; },
-): Promise<{ stdout: string; stderr: string; }> {
+  opts: { timeout?: number; maxBuffer?: number },
+): Promise<{ stdout: string; stderr: string }> {
   return new Promise((resolve, reject) => {
-    execFile(
-      bin,
-      args,
-      { ...opts, encoding: "utf8" },
-      (error, stdout, stderr) => {
-        if (error) {
-          const enriched = error as Error & { stderr?: string; };
-          enriched.stderr = stderr;
-          reject(enriched);
-          return;
-        }
-        resolve({ stdout: stdout ?? "", stderr: stderr ?? "" });
-      },
-    );
+    execFile(bin, args, { ...opts, encoding: "utf8" }, (error, stdout, stderr) => {
+      if (error) {
+        const enriched = error as Error & { stderr?: string };
+        enriched.stderr = stderr;
+        reject(enriched);
+        return;
+      }
+      resolve({ stdout: stdout ?? "", stderr: stderr ?? "" });
+    });
   });
 }
 
@@ -44,7 +39,7 @@ export class CliTransport implements GatewayTransport {
   async request<T = Record<string, unknown>>(
     method: string,
     params?: unknown,
-    _opts?: { expectFinal?: boolean; },
+    _opts?: { expectFinal?: boolean },
   ): Promise<T> {
     if (method === "chat.send") {
       return this.chatSend(params) as Promise<T>;
@@ -57,9 +52,7 @@ export class CliTransport implements GatewayTransport {
     throw new Error(`Unsupported method: ${method}`);
   }
 
-  private async chatSend(
-    params: unknown,
-  ): Promise<Record<string, unknown>> {
+  private async chatSend(params: unknown): Promise<Record<string, unknown>> {
     const { sessionKey, message } = (params ?? {}) as {
       sessionKey?: string;
       message?: string;
@@ -69,16 +62,7 @@ export class CliTransport implements GatewayTransport {
       throw new Error("message is required");
     }
 
-    const args = [
-      "agent",
-      "--agent",
-      "main",
-      "--message",
-      message,
-      "--json",
-      "--timeout",
-      "30",
-    ];
+    const args = ["agent", "--agent", "main", "--message", message, "--json", "--timeout", "30"];
 
     if (sessionKey) {
       args.push("--session-id", sessionKey);

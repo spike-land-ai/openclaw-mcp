@@ -1,9 +1,6 @@
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import {
-  CallToolRequestSchema,
-  ListToolsRequestSchema,
-} from "@modelcontextprotocol/sdk/types.js";
+import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 import type {
   McpBridge,
   McpBridgeOptions,
@@ -12,7 +9,7 @@ import type {
   McpToolDef,
 } from "./types.js";
 
-type ToolEntry = McpToolDef & { sessionKey: string; };
+type ToolEntry = McpToolDef & { sessionKey: string };
 
 type GatewayToolListResult = {
   tools: Array<{
@@ -24,19 +21,17 @@ type GatewayToolListResult = {
 };
 
 type ChatResult = {
-  message?: { content?: Array<{ type: string; text?: string; }>; };
+  message?: { content?: Array<{ type: string; text?: string }> };
 };
 
 type ToolCallResult = {
-  content?: Array<{ type: string; text?: string; mimeType?: string; url?: string; data?: string; }>;
+  content?: Array<{ type: string; text?: string; mimeType?: string; url?: string; data?: string }>;
 };
 
 export function createMcpBridge(opts: McpBridgeOptions): McpBridge {
   const { transport, serverInfo, verbose } = opts;
   const defaultSessionKey = opts.defaultSessionKey ?? "agent:main:main";
-  const log = verbose
-    ? (msg: string) => process.stderr.write(`[mcp] ${msg}\n`)
-    : () => {};
+  const log = verbose ? (msg: string) => process.stderr.write(`[mcp] ${msg}\n`) : () => {};
 
   const toolRegistry = new Map<string, ToolEntry>();
   let toolsLoaded = false;
@@ -60,7 +55,7 @@ export function createMcpBridge(opts: McpBridgeOptions): McpBridge {
   });
 
   function listTools(): McpToolDef[] {
-    return [...toolRegistry.values()].map(t => ({
+    return [...toolRegistry.values()].map((t) => ({
       name: t.name,
       description: t.description,
       inputSchema: t.inputSchema,
@@ -75,10 +70,7 @@ export function createMcpBridge(opts: McpBridgeOptions): McpBridge {
 
     let toolList: GatewayToolListResult;
     try {
-      toolList = await transport.request<GatewayToolListResult>(
-        "tools.list",
-        {},
-      );
+      toolList = await transport.request<GatewayToolListResult>("tools.list", {});
     } catch (err) {
       log(`tools.list not available (${String(err)}), using chat-only mode`);
       return;
@@ -93,14 +85,10 @@ export function createMcpBridge(opts: McpBridgeOptions): McpBridge {
         sessionKey,
       });
     }
-    log(
-      `loaded ${toolList.tools.length} tools from gateway (session: ${sessionKey})`,
-    );
+    log(`loaded ${toolList.tools.length} tools from gateway (session: ${sessionKey})`);
   }
 
-  async function executeChatTool(
-    args: Record<string, unknown>,
-  ): Promise<McpCallResult> {
+  async function executeChatTool(args: Record<string, unknown>): Promise<McpCallResult> {
     const message = args.message as string | undefined;
     if (!message) {
       return {
@@ -108,8 +96,7 @@ export function createMcpBridge(opts: McpBridgeOptions): McpBridge {
         isError: true,
       };
     }
-    const sessionKey = (args.session as string | undefined)
-      ?? defaultSessionKey;
+    const sessionKey = (args.session as string | undefined) ?? defaultSessionKey;
     log(`chat: ${sessionKey}: ${message.slice(0, 80)}`);
 
     try {
@@ -118,7 +105,7 @@ export function createMcpBridge(opts: McpBridgeOptions): McpBridge {
         { sessionKey, message },
         { expectFinal: true },
       );
-      const text = result.message?.content?.find(c => c.type === "text")?.text ?? "(no response)";
+      const text = result.message?.content?.find((c) => c.type === "text")?.text ?? "(no response)";
       return { content: [{ type: "text", text }] };
     } catch (err) {
       return {
@@ -149,7 +136,11 @@ export function createMcpBridge(opts: McpBridgeOptions): McpBridge {
             if (c.data) {
               return {
                 type: "image",
-                source: { type: "base64", data: c.data, mediaType: c.mimeType ?? "application/octet-stream" },
+                source: {
+                  type: "base64",
+                  data: c.data,
+                  mediaType: c.mimeType ?? "application/octet-stream",
+                },
               };
             }
             if (c.url) {
@@ -171,10 +162,7 @@ export function createMcpBridge(opts: McpBridgeOptions): McpBridge {
     }
   }
 
-  async function callTool(
-    name: string,
-    args: Record<string, unknown>,
-  ): Promise<McpCallResult> {
+  async function callTool(name: string, args: Record<string, unknown>): Promise<McpCallResult> {
     if (name === "chat") {
       return executeChatTool(args);
     }
@@ -198,7 +186,7 @@ export function createMcpBridge(opts: McpBridgeOptions): McpBridge {
       tools: listTools(),
     }));
 
-    server.setRequestHandler(CallToolRequestSchema, async request => {
+    server.setRequestHandler(CallToolRequestSchema, async (request) => {
       const { name, arguments: callArgs = {} } = request.params;
       return callTool(name, callArgs);
     });
@@ -207,7 +195,7 @@ export function createMcpBridge(opts: McpBridgeOptions): McpBridge {
     await server.connect(stdioTransport);
     log("server started");
 
-    await new Promise<void>(resolve => {
+    await new Promise<void>((resolve) => {
       process.once("SIGINT", resolve);
       process.once("SIGTERM", resolve);
     });

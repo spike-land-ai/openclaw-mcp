@@ -34,10 +34,10 @@ describe("CliTransport", () => {
       return {} as ReturnType<typeof execFile>;
     });
 
-    const result = await transport.request("chat.send", {
+    const result = (await transport.request("chat.send", {
       message: "hi",
       sessionKey: "sess1",
-    }) as { message: { content: Array<{ type: string; text: string; }>; }; };
+    })) as { message: { content: Array<{ type: string; text: string }> } };
     expect(result.message.content[0]?.text).toBe("hello from cli");
     expect(execFile).toHaveBeenCalledWith(
       "custom-bin",
@@ -72,12 +72,16 @@ describe("CliTransport", () => {
   it("should handle empty payloads response", async () => {
     const transport = new CliTransport();
     vi.mocked(execFile).mockImplementation((_bin, _args, _opts, cb) => {
-      (cb as Parameters<typeof execFile>[3])(null, JSON.stringify({ result: { payloads: [] } }), "");
+      (cb as Parameters<typeof execFile>[3])(
+        null,
+        JSON.stringify({ result: { payloads: [] } }),
+        "",
+      );
       return {} as ReturnType<typeof execFile>;
     });
 
-    const result = await transport.request("chat.send", { message: "hi" }) as {
-      message: { content: Array<{ type: string; text: string; }>; };
+    const result = (await transport.request("chat.send", { message: "hi" })) as {
+      message: { content: Array<{ type: string; text: string }> };
     };
     expect(result.message.content[0]?.text).toBe("(no response)");
   });

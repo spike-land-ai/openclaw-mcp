@@ -2,7 +2,7 @@ export interface GatewayTransport {
   request<T = Record<string, unknown>>(
     method: string,
     params?: unknown,
-    opts?: { expectFinal?: boolean; },
+    opts?: { expectFinal?: boolean },
   ): Promise<T>;
 }
 
@@ -17,7 +17,7 @@ export interface ToolLike {
   execute(
     toolCallId: string,
     args: Record<string, unknown>,
-  ): Promise<{ content: Array<{ type: string; text?: string; }>; }>;
+  ): Promise<{ content: Array<{ type: string; text?: string }> }>;
 }
 
 export type McpToolDef = {
@@ -27,8 +27,11 @@ export type McpToolDef = {
 };
 
 export type McpContentItem =
-  | { type: "text"; text: string; }
-  | { type: "image"; source: { type: "base64"; data: string; mediaType: string; } | { type: "url"; url: string; }; };
+  | { type: "text"; text: string }
+  | {
+      type: "image";
+      source: { type: "base64"; data: string; mediaType: string } | { type: "url"; url: string };
+    };
 
 export type McpCallResult = {
   content: McpContentItem[];
@@ -37,7 +40,7 @@ export type McpCallResult = {
 
 export type McpBridgeOptions = {
   transport: GatewayTransport;
-  serverInfo: { name: string; version: string; };
+  serverInfo: { name: string; version: string };
   defaultSessionKey?: string;
   verbose?: boolean;
 };

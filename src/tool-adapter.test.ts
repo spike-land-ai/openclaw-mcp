@@ -55,10 +55,7 @@ describe("convertToolToMcp", () => {
 
   it("strips TypeBox symbols (only string keys survive Object.entries)", () => {
     const sym = Symbol("typebox-internal");
-    const prop = { type: "string", description: "A field" } as Record<
-      string | symbol,
-      unknown
-    >;
+    const prop = { type: "string", description: "A field" } as Record<string | symbol, unknown>;
     prop[sym] = "should-be-stripped";
 
     const tool: ToolLike = {
@@ -80,8 +77,7 @@ describe("convertToolToMcp", () => {
       description: "A field",
     });
     // Symbol key should not appear
-    expect(Object.getOwnPropertySymbols(fieldSchema.properties.field))
-      .toHaveLength(0);
+    expect(Object.getOwnPropertySymbols(fieldSchema.properties.field)).toHaveLength(0);
   });
 
   it("uses empty string for missing description", () => {

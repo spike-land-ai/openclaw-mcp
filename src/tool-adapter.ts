@@ -18,11 +18,9 @@ export function convertToolToMcp(tool: ToolLike): McpToolDef {
   };
 
   if (schema && typeof schema === "object" && "properties" in schema) {
-    for (
-      const [key, prop] of Object.entries(
-        schema.properties as Record<string, Record<string, unknown>>,
-      )
-    ) {
+    for (const [key, prop] of Object.entries(
+      schema.properties as Record<string, Record<string, unknown>>,
+    )) {
       // Strip TypeBox internal symbols, keep JSON Schema fields
       const clean: Record<string, unknown> = {};
       for (const [k, v] of Object.entries(prop)) {

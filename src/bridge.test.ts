@@ -45,8 +45,8 @@ describe("createMcpBridge", () => {
     const tools = bridge.listTools();
 
     expect(tools).toHaveLength(3); // chat + search + calc
-    expect(tools.map(t => t.name)).toContain("search");
-    expect(tools.map(t => t.name)).toContain("calc");
+    expect(tools.map((t) => t.name)).toContain("search");
+    expect(tools.map((t) => t.name)).toContain("calc");
   });
 
   it("loadGatewayTools() falls back to chat-only when tools.list throws", async () => {
@@ -82,7 +82,7 @@ describe("createMcpBridge", () => {
     expect(transport.request).toHaveBeenCalledTimes(1);
   });
 
-  it("callTool(\"chat\", ...) sends chat.send RPC and returns text", async () => {
+  it('callTool("chat", ...) sends chat.send RPC and returns text', async () => {
     const transport = mockTransport();
     transport.request.mockResolvedValue({
       message: { content: [{ type: "text", text: "Hello back!" }] },
@@ -105,7 +105,7 @@ describe("createMcpBridge", () => {
     );
   });
 
-  it("callTool(\"chat\", {}) returns error when message is missing", async () => {
+  it('callTool("chat", {}) returns error when message is missing', async () => {
     const transport = mockTransport();
     const bridge = createMcpBridge({
       transport,
@@ -118,7 +118,7 @@ describe("createMcpBridge", () => {
     expect(result.content[0].text).toContain("message is required");
   });
 
-  it("callTool(\"chat\", ...) passes expectFinal: true", async () => {
+  it('callTool("chat", ...) passes expectFinal: true', async () => {
     const transport = mockTransport();
     transport.request.mockResolvedValue({
       message: { content: [{ type: "text", text: "ok" }] },
@@ -131,16 +131,12 @@ describe("createMcpBridge", () => {
 
     await bridge.callTool("chat", { message: "hi" });
 
-    expect(transport.request).toHaveBeenCalledWith(
-      "chat.send",
-      expect.any(Object),
-      {
-        expectFinal: true,
-      },
-    );
+    expect(transport.request).toHaveBeenCalledWith("chat.send", expect.any(Object), {
+      expectFinal: true,
+    });
   });
 
-  it("callTool(\"chat\", ...) uses custom session key", async () => {
+  it('callTool("chat", ...) uses custom session key', async () => {
     const transport = mockTransport();
     transport.request.mockResolvedValue({
       message: { content: [{ type: "text", text: "ok" }] },
@@ -178,7 +174,7 @@ describe("createMcpBridge", () => {
     expect(result.content[0].text).toContain("connection lost");
   });
 
-  it("empty chat response returns \"(no response)\"", async () => {
+  it('empty chat response returns "(no response)"', async () => {
     const transport = mockTransport();
     transport.request.mockResolvedValue({ message: { content: [] } });
 

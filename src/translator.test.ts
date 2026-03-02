@@ -3,15 +3,10 @@ import type { ToolLike } from "./types.js";
 import { createToolExecutor } from "./translator.js";
 
 describe("createToolExecutor", () => {
-  function makeTool(
-    name: string,
-    result?: { content: Array<{ type: string; text?: string; }>; },
-  ) {
+  function makeTool(name: string, result?: { content: Array<{ type: string; text?: string }> }) {
     const executeFn = vi
       .fn()
-      .mockResolvedValue(
-        result ?? { content: [{ type: "text", text: `${name} result` }] },
-      );
+      .mockResolvedValue(result ?? { content: [{ type: "text", text: `${name} result` }] });
     const tool: ToolLike = {
       name,
       description: `${name} tool`,
